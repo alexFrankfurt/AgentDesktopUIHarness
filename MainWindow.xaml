@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="ihsbmodern.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:ihsbmodern"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="ihsbmodern"
+    mc:Ignorable="d">
+    <Grid x:Name="RootGrid">
+        <Grid.Resources>
+            <MenuFlyout x:Name="FolderContextMenu">
+                <MenuFlyoutItem
+                    Click="RenameFolderMenu_Click"
+                    Icon="Rename"
+                    Text="Rename" />
+                <MenuFlyoutItem
+                    Click="DeleteFolderMenu_Click"
+                    Icon="Delete"
+                    Text="Delete folder" />
+            </MenuFlyout>
+            <MenuFlyout x:Name="ChatContextMenu">
+                <MenuFlyoutItem
+                    Click="DeleteChatMenu_Click"
+                    Icon="Delete"
+                    Text="Delete chat" />
+            </MenuFlyout>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border
+            x:Name="AppTitleBar"
+            Grid.Row="0"
+            Height="32"
+            Background="Transparent" />
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" MinWidth="200" />
+                <ColumnDefinition Width="*" MinWidth="300" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Sidebar -->
+            <Grid Grid.Column="0" Background="Transparent">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- New Chat button -->
+                <Button
+                    Grid.Row="0"
+                    Margin="12,12,12,4"
+                    HorizontalAlignment="Stretch"
+                    Click="NewChatButton_Click"
+                    Style="{ThemeResource AccentButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontSize="14" Glyph="&#xE710;" />
+                        <TextBlock Text="New Chat" />
+                    </StackPanel>
+                </Button>
+
+                <!-- Add Folder -->
+                <Grid Grid.Row="1" Margin="12,4,12,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        x:Name="NewFolderNameBox"
+                        Grid.Column="0"
+                        Padding="8,4"
+                        PlaceholderText="Folder name..."
+                        KeyDown="NewFolderNameBox_KeyDown" />
+                    <Button
+                        x:Name="AddFolderButton"
+                        Grid.Column="1"
+                        Margin="4,0,0,0"
+                        Click="AddFolderButton_Click"
+                        ToolTipService.ToolTip="Add folder">
+                        <FontIcon FontSize="14" Glyph="&#xE710;" />
+                    </Button>
+                </Grid>
+
+                <!-- Settings -->
+                <StackPanel
+                    Grid.Row="2"
+                    Margin="12,4,12,4"
+                    Spacing="8">
+                    <TextBlock
+                        FontSize="12"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Settings" />
+                    <PasswordBox
+                        x:Name="ApiKeyBox"
+                        Padding="8,4"
+                        PlaceholderText="DeepSeek API Key (sk-...)"
+                        PasswordChanged="ApiKeyBox_PasswordChanged" />
+                        <ComboBox
+                            x:Name="ModelSelector"
+                            HorizontalAlignment="Stretch"
+                            Header="Model"
+                            SelectedIndex="0"
+                            SelectionChanged="ModelSelector_SelectionChanged" />
+                    <StackPanel
+                        x:Name="EffortPanel"
+                        Visibility="Collapsed">
+                        <ComboBox
+                            x:Name="EffortSelector"
+                            HorizontalAlignment="Stretch"
+                            Header="Reasoning Effort"
+                            ItemsSource="{x:Bind _vm.AvailableEfforts}"
+                            SelectedIndex="1"
+                            SelectionChanged="EffortSelector_SelectionChanged" />
+                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            x:Name="WorkDirLabel"
+                            Grid.Column="0"
+                            Padding="8,4"
+                            FontSize="12"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="No working directory"
+                            TextTrimming="CharacterEllipsis"
+                            VerticalAlignment="Center" />
+                        <Button
+                            x:Name="PickFolderButton"
+                            Grid.Column="1"
+                            Click="PickFolderButton_Click"
+                            ToolTipService.ToolTip="Choose working directory">
+                            <FontIcon FontSize="14" Glyph="&#xE8B7;" />
+                        </Button>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Folders and Chats TreeView -->
+                <TreeView
+                    x:Name="FoldersTree"
+                    Grid.Row="3"
+                    Margin="4,0"
+                    ItemInvoked="FoldersTree_ItemInvoked"
+                    RightTapped="FoldersTree_RightTapped" />
+
+                <!-- Rename folder inline -->
+                <Grid
+                    x:Name="RenameFolderPanel"
+                    Grid.Row="4"
+                    Margin="12,4,12,12"
+                    Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        x:Name="RenameFolderBox"
+                        Grid.Column="0"
+                        Padding="8,4"
+                        KeyDown="RenameFolderBox_KeyDown" />
+                    <Button
+                        Grid.Column="1"
+                        Margin="4,0,0,0"
+                        Click="SaveRenameButton_Click"
+                        ToolTipService.ToolTip="Save">
+                        <FontIcon FontSize="14" Glyph="&#xE73E;" />
+                    </Button>
+                    <Button
+                        Grid.Column="2"
+                        Margin="4,0,0,0"
+                        Click="CancelRenameButton_Click"
+                        ToolTipService.ToolTip="Cancel">
+                        <FontIcon FontSize="14" Glyph="&#xE711;" />
+                    </Button>
+                </Grid>
+
+                <!-- Status -->
+                <TextBlock
+                    x:Name="StatusText"
+                    Grid.Row="5"
+                    Margin="12,4,12,8"
+                    FontSize="12"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="" />
+            </Grid>
+
+            <!-- Chat Area -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Chat Header -->
+                <Border
+                    Grid.Row="0"
+                    Padding="16,12"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="0,0,0,1">
+                    <TextBlock
+                        x:Name="ChatTitle"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="Select or create a chat" />
+                </Border>
+
+                <!-- Messages List -->
+                <Grid Grid.Row="1">
+                    <ScrollViewer
+                        x:Name="MessagesScroller"
+                        HorizontalAlignment="Stretch"
+                        VerticalScrollBarVisibility="Auto">
+                        <StackPanel
+                            x:Name="MessagesContainer"
+                            Margin="16,8"
+                            Spacing="8" />
+                    </ScrollViewer>
+                    <ProgressRing
+                        x:Name="LoadingRing"
+                        Width="32"
+                        Height="32"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        IsActive="False"
+                        Visibility="Collapsed" />
+                </Grid>
+
+                <!-- Input Area -->
+                <Border
+                    Grid.Row="2"
+                    Padding="16,12"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="0,1,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox
+                            x:Name="MessageInputBox"
+                            Grid.Column="0"
+                            MaxHeight="120"
+                            Padding="12,8"
+                            PlaceholderText="Type a message..."
+                            TextWrapping="Wrap"
+                            KeyDown="MessageInputBox_KeyDown" />
+                        <Button
+                            x:Name="SendButton"
+                            Grid.Column="1"
+                            Margin="8,0,0,0"
+                            Click="SendButton_Click"
+                            Style="{ThemeResource AccentButtonStyle}">
+                            <FontIcon FontSize="14" Glyph="&#xE724;" />
+                        </Button>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

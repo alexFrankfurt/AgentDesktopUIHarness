@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ihsbmodern (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ihsbmodern (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
